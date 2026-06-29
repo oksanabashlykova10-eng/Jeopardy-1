@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geopardy Editor Pro | English Bootcamp</title>
+    <title>Jeopardy Game Editor by English Bootcamp</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Caveat:wght@600&family=Comic+Neue:wght@700&family=Courier+Prime:wght@700&family=Exo+2:wght@400;700&family=Montserrat:wght@600&family=Orbitron:wght@500;900&family=Oswald:wght@500&family=Playfair+Display:wght@600&family=Roboto:wght@500&display=swap" rel="stylesheet">
     
@@ -15,7 +15,6 @@
             --title-color: #ffffff;
             --base-font-size: 1.2rem;
             --title-font-scale: 1; 
-            
             --title-font-size: 4rem; 
             
             --points-color: #ffd700;
@@ -298,7 +297,11 @@
                     <div class="form-group">
                         <label>Стиль (Пресеты)</label>
                         <select id="ed-avatar-theme" onchange="applyAvatarTheme(this.value)">
-                            <option value="animals">Животные (Эмодзи)</option><option value="robots">Роботы (Техно)</option><option value="monsters">Монстрики</option>
+                            <option value="animals">Животные (Эмодзи)</option>
+                            <option value="robots">Роботы (Техно)</option>
+                            <option value="monsters">Монстрики</option>
+                            <option value="xmas">Новый Год (Зима)</option>
+                            <option value="adventure">Приключения</option>
                         </select>
                     </div>
                     <div class="form-group" id="ed-avatars-box"></div>
@@ -379,17 +382,21 @@
 
                 <!-- Вкладка: ЭКСПОРТ ИГРЫ -->
                 <div id="tab-export" class="ed-pane">
-                    <h3>Финальная генерация</h3>
-                    <p style="font-size: 0.9rem; color: #555; margin-bottom: 15px;">Нажмите кнопку ниже, чтобы упаковать игру. Код будет надежно скрыт в Base64 без упоминания GitHub.</p>
-                    <button class="btn-start" style="width:100%; font-size:1.2rem; background:#00bcd4; border-color:#00bcd4; color:#000;" onclick="generateGameCode()">СГЕНЕРИРОВАТЬ ИГРУ</button>
+                    <h3>Экспорт игры</h3>
+                    <button class="btn-start" style="width:100%; font-size:1rem; background:#00bcd4; border-color:#00bcd4; color:#000;" onclick="generateGameCode()">СГЕНЕРИРОВАТЬ КОД</button>
                     
                     <div id="export-result" style="display:none; margin-top:20px;">
-                        <label>Код Iframe (Для вставки в Genially):</label>
-                        <textarea id="out-iframe" rows="3" readonly onclick="this.select()" style="font-family:monospace; background:#e0f7fa; cursor:pointer;" title="Кликните, чтобы скопировать"></textarea>
+                        <label style="display:block; margin-bottom:5px;">Iframe (Для вставки в Genially):</label>
+                        <div class="flex-row">
+                            <textarea id="out-iframe" rows="2" readonly style="font-family:monospace; background:#fff; width: 75%; padding:8px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+                            <button onclick="copyCode('out-iframe', this)" style="padding:10px; cursor:pointer; width: 25%; background: #4caf50; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s;">Копировать</button>
+                        </div>
                         
-                        <label style="margin-top:10px;">Чистый HTML-код (опционально):</label>
-                        <textarea id="out-html" rows="3" readonly onclick="this.select()" style="font-family:monospace; cursor:pointer;" title="Кликните, чтобы скопировать"></textarea>
-                        <p style="font-size:0.75rem; color:#f44336; margin-top:10px; font-weight:bold;">*Код сжат и скрыт. Скопируйте нужный вариант и вставьте в ваш проект!</p>
+                        <label style="display:block; margin-top:15px; margin-bottom:5px;">Чистый HTML:</label>
+                        <div class="flex-row">
+                            <textarea id="out-html" rows="2" readonly style="font-family:monospace; background:#fff; width: 75%; padding:8px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+                            <button onclick="copyCode('out-html', this)" style="padding:10px; cursor:pointer; width: 25%; background: #4caf50; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s;">Копировать</button>
+                        </div>
                     </div>
                 </div>
 
@@ -518,7 +525,6 @@
             audioPlayers['correct'] = new Audio(gameConfig.sounds.correct);
             audioPlayers['wrong'] = new Audio(gameConfig.sounds.wrong);
             audioPlayers['fanfare'] = new Audio(gameConfig.sounds.fanfare);
-            // Принудительно "трогаем" аудио, чтобы браузер дал разрешение
             for (let key in audioPlayers) { audioPlayers[key].load(); }
         }
 
@@ -580,7 +586,7 @@
             if(!isTestMode) return;
             gameConfig.teams = parseInt(document.getElementById('team-count').value);
             scores = Array(gameConfig.teams).fill(0); currentTeamIndex = 0; questionsAnswered = 0;
-            preloadSounds(); // Инициализация звуков по клику пользователя!
+            preloadSounds();
             document.getElementById('start-screen').style.display = 'none'; document.getElementById('game-screen').style.display = 'flex';
             document.getElementById('in-game-controls').style.display = 'flex'; buildBoard(); buildTeams();
         }
@@ -594,6 +600,21 @@
             if(mode === 'game') { document.getElementById('game-screen').style.display = 'flex'; buildBoard(); buildTeams(); }
             if(mode === 'question') { document.getElementById('question-modal').style.display = 'flex'; showMockModalForTab(); }
             if(mode === 'final') { document.getElementById('final-screen').style.display = 'flex'; }
+        }
+
+        function copyCode(id, btnElement) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "Скопировано!";
+            btnElement.style.background = "#00bcd4";
+            btnElement.style.color = "#000";
+            setTimeout(() => {
+                btnElement.innerText = originalText;
+                btnElement.style.background = "#4caf50";
+                btnElement.style.color = "white";
+            }, 2000);
         }
 
         function initPresets() {
@@ -624,7 +645,17 @@
             const avaBox = document.getElementById('ed-avatars-box'); avaBox.innerHTML = '';
             for(let i=0; i<4; i++) { avaBox.innerHTML += `<div style="margin-bottom:15px;"><label>Команда ${i+1}</label><div class="flex-row"><div id="prev-ava-${i}" style="width:40px; height:40px; border-radius:50%; border:2px solid #ccc; overflow:hidden; background:#222;"></div><input type="text" id="ed-ava-input-${i}" value="${gameConfig.avatars[i]}" onchange="updateAva(${i}, this.value)" style="flex-grow:1;"></div></div>`; renderAvaPreview(i, gameConfig.avatars[i]); }
         }
-        function applyAvatarTheme(theme) { if(theme === 'animals') gameConfig.avatars = ["🦊", "🐰", "🦁", "🐼"]; else if(theme === 'robots') gameConfig.avatars = ["https://api.dicebear.com/7.x/bottts/svg?seed=T1", "https://api.dicebear.com/7.x/bottts/svg?seed=T2", "https://api.dicebear.com/7.x/bottts/svg?seed=T3", "https://api.dicebear.com/7.x/bottts/svg?seed=T4"]; else gameConfig.avatars = ["👾", "👽", "👹", "👻"]; for(let i=0; i<4; i++) { document.getElementById(`ed-ava-input-${i}`).value = gameConfig.avatars[i]; renderAvaPreview(i, gameConfig.avatars[i]); } buildTeams(); }
+        
+        function applyAvatarTheme(theme) { 
+            if(theme === 'animals') gameConfig.avatars = ["🦊", "🐰", "🦁", "🐼"]; 
+            else if(theme === 'robots') gameConfig.avatars = ["🤖", "🦾", "🦿", "🔋"]; 
+            else if(theme === 'xmas') gameConfig.avatars = ["🎄", "🎅", "🎁", "❄️"];
+            else if(theme === 'adventure') gameConfig.avatars = ["🧭", "🗺️", "🏴‍☠️", "💎"];
+            else gameConfig.avatars = ["👾", "👽", "👹", "👻"]; 
+            for(let i=0; i<4; i++) { document.getElementById(`ed-ava-input-${i}`).value = gameConfig.avatars[i]; renderAvaPreview(i, gameConfig.avatars[i]); } 
+            buildTeams(); 
+        }
+
         function updateCat(i, type, val) { if(type === 'color') gameConfig.colColors[i] = val; if(type === 'text') gameConfig.categories[i] = val; buildBoard(); renderQuestionsForms(); }
         function updateAva(i, val) { gameConfig.avatars[i] = val; renderAvaPreview(i, val); buildTeams(); }
         function updateCup(val) { gameConfig.cupImg = val; document.getElementById('reward-image').src = val; }
@@ -819,7 +850,13 @@
 
             document.getElementById('final-screen').style.display = 'flex'; 
             
-            playSound('fanfare'); 
+            // Жесткий вызов фанфар с подстраховкой на случай блокировки браузером
+            let playPromise = audioPlayers['fanfare'].play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    document.addEventListener('click', () => { audioPlayers['fanfare'].play(); }, {once: true});
+                });
+            }
             
             document.getElementById('reward-image').src = gameConfig.cupImg;
 
@@ -843,7 +880,6 @@
 
         // --- ГЕНЕРАЦИЯ ФИНАЛЬНОГО КОДА ---
         function generateGameCode() {
-            // Собираем CSS переменные (чтобы сохранить стилистику)
             let rootStyles = `:root {
                 --font-main: ${document.documentElement.style.getPropertyValue('--font-main') || "'Exo 2', sans-serif"};
                 --font-title: ${document.documentElement.style.getPropertyValue('--font-title') || "'Orbitron', sans-serif"};
@@ -1132,7 +1168,13 @@
             document.getElementById('start-screen').style.display = 'none'; document.getElementById('in-game-controls').style.display = 'none';
             
             document.getElementById('final-screen').style.display = 'flex'; 
-            playSound('fanfare'); 
+            
+            let playPromise = audioPlayers['fanfare'].play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    document.addEventListener('click', () => { audioPlayers['fanfare'].play(); }, {once: true});
+                });
+            }
             
             let results = [];
             for (let i = 0; i < gameConfig.teams; i++) { results.push({ id: i, name: \`Team \${i + 1}\`, score: scores[i], avatar: (!gameConfig.avatars[i].startsWith('http') && !gameConfig.avatars[i].startsWith('data:')) ? \`<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:1.5rem;">\${gameConfig.avatars[i]}</div>\` : \`<img src="\${gameConfig.avatars[i]}" style="width:100%;height:100%;object-fit:cover;">\` }); }
@@ -1146,9 +1188,8 @@
             results.forEach((team, index) => { lbContainer.innerHTML += \`<div class="leaderboard-row"><div>#\${index + 1}</div><div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; border-radius:50%; overflow:hidden;">\${team.avatar}</div> \${team.name}</div><div style="color:var(--points-color); font-weight:bold;">\${team.score}</div></div>\`; });
         }
 
-        // Защита от правого клика внутри iframe
+        // Защита от правого клика внутри сгенерированной игры
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-        // Блокировка горячих клавиш
         document.addEventListener('keydown', function(e) {
             if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) { e.preventDefault(); return false; }
         });
@@ -1156,9 +1197,10 @@
 </body>
 </html>`;
 
-            // Упаковываем в Base64 для максимальной скрытности (чтобы не было видно никаких ссылок на GitHub)
             const base64Game = btoa(unescape(encodeURIComponent(fullHTML)));
-            const iframeCode = `<iframe src="data:text/html;base64,${base64Game}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
+            
+            // Важное исправление для звука в Genially: добавлен параметр allow="autoplay; fullscreen"
+            const iframeCode = `<iframe src="data:text/html;base64,${base64Game}" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
 
             document.getElementById('out-html').value = fullHTML;
             document.getElementById('out-iframe').value = iframeCode;
