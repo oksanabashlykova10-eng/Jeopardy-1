@@ -92,7 +92,7 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ПРЕДПРОСМОТР */
+        /* ПРЕДПРОСМОТР / ИГРА */
         #preview-area { width: 68%; display: flex; flex-direction: column; background: #000; position: relative;}
         
         #preview-tabs { display: flex; align-items: center; flex-wrap: wrap; background: #222; padding: 10px 20px; gap: 10px; border-bottom: 1px solid #444; z-index: 10; }
@@ -188,13 +188,11 @@
         .final-subtitle { font-size: 1.5rem; color: var(--text-color); margin-bottom: 20px; }
         #reward-image { max-width: 250px; max-height: 250px; border-radius: 15px; margin-bottom: 30px; border: 2px solid var(--points-color); box-shadow: 0 0 20px var(--points-color);}
         .leaderboard-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; margin-bottom: 10px; width: 400px; font-size: 1.2rem; color: var(--text-color);}
-
     </style>
 </head>
 <body id="body-tag">
 
     <div id="app-container">
-        
         <!-- ЛЕВАЯ ЧАСТЬ: РЕДАКТОР -->
         <div id="editor-ui">
             <div class="editor-header">
@@ -212,7 +210,6 @@
             </div>
             
             <div class="editor-content">
-                
                 <!-- Вкладка: Заставка -->
                 <div id="tab-start" class="ed-pane active">
                     <h3>Фон заставки</h3>
@@ -224,7 +221,7 @@
                     </div>
                     <h3>Название игры</h3>
                     <div class="form-group">
-                        <input type="text" id="ed-title-text" value="Geopardy" oninput="document.getElementById('drag-title-text').innerText = this.value">
+                        <input type="text" id="ed-title-text" value="Geopardy" oninput="document.getElementById('drag-title-text').innerText = this.value; gameConfig.title = this.value;">
                         <p style="font-size: 0.75rem; color: #666;">* Перемещайте заголовок и панель команд мышкой. Тяните за правый нижний угол, чтобы изменить размер.</p>
                     </div>
                     <h3>Подложки (Заголовок, панель)</h3>
@@ -261,7 +258,7 @@
                         <label>Свой фон (URL/Файл)</label>
                         <input type="text" placeholder="URL картинки..." onchange="updateBg('modal', this.value, true)">
                         <label style="margin-top: 15px;">Затемнение фона (0 - 100%)</label>
-                        <input type="range" min="0" max="100" value="60" oninput="document.documentElement.style.setProperty('--modal-overlay-opacity', this.value / 100)">
+                        <input type="range" min="0" max="100" value="60" oninput="gameConfig.style.modalOverlayOpacity = this.value / 100; applyConfigStyles();">
                         <label style="margin-top: 15px;">Цвет самой плашки (рамки) вопроса</label>
                         <div class="flex-row">
                             <input type="color" id="ed-modal-box-color" value="#0a0a2a" onchange="updateModalBox()"><span style="font-size: 0.8rem;">Выбор цвета</span>
@@ -386,13 +383,13 @@
                     <button class="btn-start" style="width:100%; font-size:1rem; background:#00bcd4; border-color:#00bcd4; color:#000;" onclick="generateGameCode()">СГЕНЕРИРОВАТЬ КОД</button>
                     
                     <div id="export-result" style="display:none; margin-top:20px;">
-                        <label style="display:block; margin-bottom:5px;">Iframe (Для вставки в Genially):</label>
+                        <label style="display:block; margin-bottom:5px;">Iframe 2-в-1 (Идеально для Genially):</label>
                         <div class="flex-row">
                             <textarea id="out-iframe" rows="2" readonly style="font-family:monospace; background:#fff; width: 75%; padding:8px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
                             <button onclick="copyCode('out-iframe', this)" style="padding:10px; cursor:pointer; width: 25%; background: #4caf50; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s;">Копировать</button>
                         </div>
                         
-                        <label style="display:block; margin-top:15px; margin-bottom:5px;">Чистый HTML:</label>
+                        <label style="display:block; margin-top:15px; margin-bottom:5px;">Чистый HTML (Для отдельного сайта):</label>
                         <div class="flex-row">
                             <textarea id="out-html" rows="2" readonly style="font-family:monospace; background:#fff; width: 75%; padding:8px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
                             <button onclick="copyCode('out-html', this)" style="padding:10px; cursor:pointer; width: 25%; background: #4caf50; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s;">Копировать</button>
@@ -478,18 +475,24 @@
             colColors: ["#ff9800", "#4caf50", "#9c27b0", "#2196f3", "#f44336"],
             avatars: ["🦊", "🐰", "🦁", "🐼"], 
             cupImg: "https://images.unsplash.com/photo-1578269174936-2709b6aeb913?auto=format&fit=crop&w=400&q=80",
-            bgGameBoard: "#0a0a2a", teams: 4,
+            teams: 4,
             sounds: { click: "https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3", correct: "https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3", wrong: "https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3", fanfare: "https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" },
             questions: [],
             bulkMode: [false, false, false, false, false], 
-            bulkText: ['', '', '', '', ''] 
+            bulkText: ['', '', '', '', ''],
+            style: {
+                fontMain: "'Exo 2', sans-serif", fontTitle: "'Orbitron', sans-serif",
+                textColor: "#ffffff", titleColor: "#ffffff", baseFontSize: "1.2rem", titleFontScale: "1",
+                bgStartImg: "url('https://img.genially.com/67961b32a116fb001568a75e/c5fddf17-7bd2-4683-96cf-a67922a34088.png')",
+                bgGameBoard: "#0a0a2a", bgModalImg: "url('https://img.genially.com/67961b32a116fb001568a75e/168003a7-5b35-41b1-92f9-72c3ded83663.png')",
+                modalOverlayOpacity: "0.6", modalBoxBg: "rgba(10, 10, 42, 1)",
+                underlayBg: "rgba(0, 0, 0, 0.5)", underlayNeon: "#00ffff"
+            }
         };
 
         for(let c=0; c<5; c++) {
             let catQuestions = [];
-            for(let r=0; r<5; r++) {
-                catQuestions.push({ rawText: '', type: 'unscramble', text: `Вопрос за ${100 * (r+1)} баллов...`, hasMedia: false, mediaType: 'image', mediaUrl: '', options: [], correctAnswer: '' });
-            }
+            for(let r=0; r<5; r++) { catQuestions.push({ rawText: '', type: 'unscramble', text: `Вопрос за ${100 * (r+1)} баллов...`, hasMedia: false, mediaType: 'image', mediaUrl: '', options: [], correctAnswer: '' }); }
             gameConfig.questions.push(catQuestions);
         }
 
@@ -501,7 +504,6 @@
             { name: "Универсал 1", url: "https://img.genially.com/67961b32a116fb001568a75e/c8bb5034-f090-482e-a9de-329b8e21ac99.png" },
             { name: "Универсал 2", url: "https://img.genially.com/67961b32a116fb001568a75e/b4363e43-b622-407e-b0fa-8fc6716c0282.png" }
         ];
-
         const presetLinksModal = [
             { name: "Британия", url: "https://img.genially.com/67961b32a116fb001568a75e/168003a7-5b35-41b1-92f9-72c3ded83663.png" },
             { name: "Новый Год", url: "https://img.genially.com/67961b32a116fb001568a75e/46727f42-f061-440f-b09e-01c94b3c1b8f.png" },
@@ -515,10 +517,45 @@
         let activeCell = null; let currentPoints = 0; let currentActiveCol = 0; let currentActiveRow = 0; 
         let audioPlayers = {}; 
 
+        // Инициализация "2-в-1"
         window.onload = () => {
-            initPresets(); initCategoriesAndAvatars(); updateUnderlay(); buildBoard(); buildTeams(); initDraggableItems(); renderQuestionsForms();
-            document.getElementById('start-screen').style.display = 'flex'; document.getElementById('game-screen').style.display = 'none';
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('config')) {
+                try {
+                    const configStr = decodeURIComponent(escape(atob(urlParams.get('config'))));
+                    gameConfig = JSON.parse(configStr);
+                    initGameOnlyMode();
+                } catch(e) { console.error("Config URL error", e); initEditorMode(); }
+            } else {
+                initEditorMode();
+            }
         };
+
+        function initEditorMode() {
+            initPresets(); initCategoriesAndAvatars(); updateUnderlay(); applyConfigStyles(); buildBoard(); buildTeams(); initDraggableItems(); renderQuestionsForms();
+            document.getElementById('start-screen').style.display = 'flex'; document.getElementById('game-screen').style.display = 'none';
+        }
+
+        function initGameOnlyMode() {
+            document.getElementById('editor-ui').style.display = 'none';
+            document.getElementById('preview-tabs').style.display = 'none';
+            document.getElementById('preview-area').style.width = '100%';
+            
+            applyConfigStyles();
+            isTestMode = true; 
+            preloadSounds();
+            
+            document.getElementById('drag-title-container').style.transform = `translate(${gameConfig.titleX}px, ${gameConfig.titleY}px) scale(${gameConfig.titleScale})`;
+            document.getElementById('drag-team-container').style.transform = `translate(${gameConfig.teamX}px, ${gameConfig.teamY}px) scale(${gameConfig.teamScale})`;
+            document.getElementById('drag-title-text').innerText = gameConfig.title;
+            
+            // Убираем возможность перетаскивать
+            document.getElementById('title-resizer').style.display = 'none';
+            document.getElementById('team-resizer').style.display = 'none';
+            
+            document.getElementById('start-screen').style.display = 'flex';
+            document.getElementById('game-screen').style.display = 'none';
+        }
 
         function preloadSounds() {
             audioPlayers['click'] = new Audio(gameConfig.sounds.click);
@@ -564,7 +601,7 @@
         }
 
         function hexToRgba(hex, opacityPercent) { let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r}, ${g}, ${b}, ${opacityPercent / 100})`; }
-        function updateModalBox() { const hex = document.getElementById('ed-modal-box-color').value; const op = document.getElementById('ed-modal-box-opacity').value; document.documentElement.style.setProperty('--modal-box-bg', hexToRgba(hex, op)); }
+        function updateModalBox() { const hex = document.getElementById('ed-modal-box-color').value; const op = document.getElementById('ed-modal-box-opacity').value; gameConfig.style.modalBoxBg = hexToRgba(hex, op); applyConfigStyles(); }
 
         function toggleTestMode() {
             const btn = document.getElementById('btn-master-test'); isTestMode = !isTestMode;
@@ -604,17 +641,10 @@
 
         function copyCode(id, btnElement) {
             const el = document.getElementById(id);
-            el.select();
-            document.execCommand('copy');
+            el.select(); document.execCommand('copy');
             const originalText = btnElement.innerText;
-            btnElement.innerText = "Скопировано!";
-            btnElement.style.background = "#00bcd4";
-            btnElement.style.color = "#000";
-            setTimeout(() => {
-                btnElement.innerText = originalText;
-                btnElement.style.background = "#4caf50";
-                btnElement.style.color = "white";
-            }, 2000);
+            btnElement.innerText = "Скопировано!"; btnElement.style.background = "#00bcd4"; btnElement.style.color = "#000";
+            setTimeout(() => { btnElement.innerText = originalText; btnElement.style.background = "#4caf50"; btnElement.style.color = "white"; }, 2000);
         }
 
         function initPresets() {
@@ -624,18 +654,29 @@
         function setPreset(target, btn, url) { btn.parentElement.querySelectorAll('.preset-item').forEach(el => el.classList.remove('active')); btn.classList.add('active'); updateBg(target, `url('${url}')`, false); }
         function updateBg(target, val, rem) {
             let cssVal = val; if(!val.startsWith('url') && !val.startsWith('#') && !val.startsWith('linear')) cssVal = `url('${val}')`;
-            if(target === 'start') { document.documentElement.style.setProperty('--bg-start-img', cssVal); }
-            if(target === 'modal') { document.documentElement.style.setProperty('--bg-modal-img', cssVal); }
+            if(target === 'start') { gameConfig.style.bgStartImg = cssVal; }
+            if(target === 'modal') { gameConfig.style.bgModalImg = cssVal; }
+            applyConfigStyles();
         }
         function toggleBgType() { const isSolid = document.getElementById('bg-type-solid').checked; document.getElementById('bg-solid-wrap').style.display = isSolid ? 'flex' : 'none'; document.getElementById('bg-gradient-wrap').style.display = isSolid ? 'none' : 'flex'; applyGameBoardBg(); }
-        function applyGameBoardBg() { const isSolid = document.getElementById('bg-type-solid').checked; let cssVal = isSolid ? document.getElementById('ed-bg-solid').value : `linear-gradient(135deg, ${document.getElementById('ed-bg-grad-1').value}, ${document.getElementById('ed-bg-grad-2').value})`; gameConfig.bgGameBoard = cssVal; document.documentElement.style.setProperty('--bg-game-board', cssVal); }
-        function updateUnderlay() { const hex = document.getElementById('ed-ul-color').value; const op = document.getElementById('ed-ul-opacity').value; document.getElementById('ed-ul-hex').value = hex; document.documentElement.style.setProperty('--underlay-bg', hexToRgba(hex, op)); document.documentElement.style.setProperty('--underlay-neon', document.getElementById('ed-ul-neon').value); }
+        function applyGameBoardBg() { const isSolid = document.getElementById('bg-type-solid').checked; let cssVal = isSolid ? document.getElementById('ed-bg-solid').value : `linear-gradient(135deg, ${document.getElementById('ed-bg-grad-1').value}, ${document.getElementById('ed-bg-grad-2').value})`; gameConfig.style.bgGameBoard = cssVal; applyConfigStyles(); }
+        function updateUnderlay() { const hex = document.getElementById('ed-ul-color').value; const op = document.getElementById('ed-ul-opacity').value; document.getElementById('ed-ul-hex').value = hex; gameConfig.style.underlayBg = hexToRgba(hex, op); gameConfig.style.underlayNeon = document.getElementById('ed-ul-neon').value; applyConfigStyles(); }
+        function applyConfigStyles() {
+            const root = document.documentElement.style;
+            root.setProperty('--font-main', gameConfig.style.fontMain); root.setProperty('--font-title', gameConfig.style.fontTitle);
+            root.setProperty('--text-color', gameConfig.style.textColor); root.setProperty('--title-color', gameConfig.style.titleColor);
+            root.setProperty('--base-font-size', gameConfig.style.baseFontSize); root.setProperty('--title-font-scale', gameConfig.style.titleFontScale);
+            root.setProperty('--bg-start-img', gameConfig.style.bgStartImg); root.setProperty('--bg-game-board', gameConfig.style.bgGameBoard);
+            root.setProperty('--bg-modal-img', gameConfig.style.bgModalImg); root.setProperty('--modal-overlay-opacity', gameConfig.style.modalOverlayOpacity);
+            root.setProperty('--modal-box-bg', gameConfig.style.modalBoxBg); root.setProperty('--underlay-bg', gameConfig.style.underlayBg); root.setProperty('--underlay-neon', gameConfig.style.underlayNeon);
+        }
         function handleFile(input, callback) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => callback(e.target.result); reader.readAsDataURL(input.files[0]); } }
         function updatePoints() { for(let i=0; i<5; i++) { gameConfig.points[i] = document.getElementById(`ed-pt-${i}`).value; } buildBoard(); renderQuestionsForms(); }
         function updateFonts() { 
-            document.documentElement.style.setProperty('--font-main', document.getElementById('ed-font-main').value); document.documentElement.style.setProperty('--font-title', document.getElementById('ed-font-title').value); 
-            document.documentElement.style.setProperty('--text-color', document.getElementById('ed-text-color').value); document.documentElement.style.setProperty('--title-color', document.getElementById('ed-title-color').value);
-            document.documentElement.style.setProperty('--base-font-size', document.getElementById('ed-text-size').value + 'rem'); document.documentElement.style.setProperty('--title-font-scale', document.getElementById('ed-title-size').value);
+            gameConfig.style.fontMain = document.getElementById('ed-font-main').value; gameConfig.style.fontTitle = document.getElementById('ed-font-title').value; 
+            gameConfig.style.textColor = document.getElementById('ed-text-color').value; gameConfig.style.titleColor = document.getElementById('ed-title-color').value;
+            gameConfig.style.baseFontSize = document.getElementById('ed-text-size').value + 'rem'; gameConfig.style.titleFontScale = document.getElementById('ed-title-size').value;
+            applyConfigStyles();
         }
         function updateConfigSounds() { const t = ['click', 'correct', 'wrong', 'fanfare']; t.forEach(k => { gameConfig.sounds[k] = document.getElementById(`ed-snd-${k}`).value; }); }
         
@@ -687,7 +728,7 @@
                                             <div style="width:100%; display:flex; align-items:center; gap:10px; margin-top:5px;">
                                                 <span style="font-size:0.8rem; font-weight:bold;">С компьютера:</span><input type="file" accept="image/*, audio/*" style="flex-grow:1; margin:0;" onchange="handleFile(this, val => { updateQData(${c}, ${r}, 'mediaUrl', val); document.getElementById('media-url-${c}-${r}').value = 'Файл загружен'; })">
                                             </div>
-                                            <span style="font-size:0.7rem; color:#f44336; width:100%;">*Картинки до 500КБ, чтобы не перегрузить игру!</span>
+                                            <span style="font-size:0.7rem; color:#f44336; width:100%;">*Картинки до 500КБ!</span>
                                           </div>`;
                         }
                         catWrap.innerHTML = innerHtml; block.appendChild(catWrap);
@@ -733,7 +774,7 @@
 
         function buildTeams() {
             const panel = document.getElementById('teams-panel'); if(!panel) return; panel.innerHTML = '';
-            const tCount = isTestMode ? gameConfig.teams : parseInt(document.getElementById('team-count').value);
+            const tCount = (isTestMode || new URLSearchParams(window.location.search).has('config')) ? gameConfig.teams : parseInt(document.getElementById('team-count').value);
             for (let i = 0; i < tCount; i++) {
                 const teamCard = document.createElement('div'); teamCard.className = 'team-card'; if(i === currentTeamIndex) teamCard.classList.add('active');
                 teamCard.id = `team-card-${i}`;
@@ -850,10 +891,11 @@
 
             document.getElementById('final-screen').style.display = 'flex'; 
             
-            // Жесткий вызов фанфар с подстраховкой на случай блокировки браузером
+            // Надежный запуск звука: если браузер блокирует autoplay, ждем клика
             let playPromise = audioPlayers['fanfare'].play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
+                    console.log("Autoplay blocked. Sound will play on click.");
                     document.addEventListener('click', () => { audioPlayers['fanfare'].play(); }, {once: true});
                 });
             }
@@ -871,7 +913,7 @@
             const lbContainer = document.getElementById('leaderboard'); lbContainer.innerHTML = '';
             results.forEach((team, index) => { lbContainer.innerHTML += `<div class="leaderboard-row"><div>#${index + 1}</div><div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; border-radius:50%; overflow:hidden;">${team.avatar}</div> ${team.name}</div><div style="color:var(--points-color); font-weight:bold;">${team.score}</div></div>`; });
 
-            if(isTestMode) {
+            if(isTestMode && !new URLSearchParams(window.location.search).has('config')) {
                 const btn = document.getElementById('btn-master-test'); btn.classList.remove('active-test'); btn.innerText = "▶ ТЕСТИРОВАТЬ ИГРУ";
                 document.querySelectorAll('.pr-tab-btn').forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
                 isTestMode = false;
@@ -880,23 +922,25 @@
 
         // --- ГЕНЕРАЦИЯ ФИНАЛЬНОГО КОДА ---
         function generateGameCode() {
+            // 1. Формируем Base64 строку для файла 2-в-1
+            const configStr = JSON.stringify(gameConfig);
+            const base64Config = btoa(unescape(encodeURIComponent(configStr)));
+            const currentUrl = window.location.href.split('?')[0].split('#')[0];
+            
+            // Iframe ссылается на ТОТ ЖЕ файл, передавая конфиг в URL
+            const iframeCode = `<iframe src="${currentUrl}?config=${base64Config}" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
+            
+            // 2. Формируем чистый HTML код (только игра)
             let rootStyles = `:root {
-                --font-main: ${document.documentElement.style.getPropertyValue('--font-main') || "'Exo 2', sans-serif"};
-                --font-title: ${document.documentElement.style.getPropertyValue('--font-title') || "'Orbitron', sans-serif"};
-                --text-color: ${document.documentElement.style.getPropertyValue('--text-color') || "#ffffff"};
-                --title-color: ${document.documentElement.style.getPropertyValue('--title-color') || "#ffffff"};
-                --base-font-size: ${document.documentElement.style.getPropertyValue('--base-font-size') || "1.2rem"};
-                --title-font-scale: ${document.documentElement.style.getPropertyValue('--title-font-scale') || "1"};
-                --title-font-size: ${document.documentElement.style.getPropertyValue('--title-font-size') || "4rem"};
-                --points-color: #ffd700; --correct-color: #00ff00; --wrong-color: #ff0044;
+                --font-main: ${gameConfig.style.fontMain}; --font-title: ${gameConfig.style.fontTitle};
+                --text-color: ${gameConfig.style.textColor}; --title-color: ${gameConfig.style.titleColor};
+                --base-font-size: ${gameConfig.style.baseFontSize}; --title-font-scale: ${gameConfig.style.titleFontScale};
+                --title-font-size: 4rem; --points-color: #ffd700; --correct-color: #00ff00; --wrong-color: #ff0044;
                 --neon-intensity: 15px; --neon-border: 2px;
-                --bg-start-img: ${document.documentElement.style.getPropertyValue('--bg-start-img') || "url('https://img.genially.com/67961b32a116fb001568a75e/c5fddf17-7bd2-4683-96cf-a67922a34088.png')"};
-                --bg-game-board: ${document.documentElement.style.getPropertyValue('--bg-game-board') || "#0a0a2a"};
-                --bg-modal-img: ${document.documentElement.style.getPropertyValue('--bg-modal-img') || "url('https://img.genially.com/67961b32a116fb001568a75e/168003a7-5b35-41b1-92f9-72c3ded83663.png')"};
-                --modal-overlay-opacity: ${document.documentElement.style.getPropertyValue('--modal-overlay-opacity') || "0.6"};
-                --modal-box-bg: ${document.documentElement.style.getPropertyValue('--modal-box-bg') || "rgba(10, 10, 42, 1)"};
-                --underlay-bg: ${document.documentElement.style.getPropertyValue('--underlay-bg') || "rgba(0, 0, 0, 0.5)"};
-                --underlay-neon: ${document.documentElement.style.getPropertyValue('--underlay-neon') || "#00ffff"};
+                --bg-start-img: ${gameConfig.style.bgStartImg}; --bg-game-board: ${gameConfig.style.bgGameBoard};
+                --bg-modal-img: ${gameConfig.style.bgModalImg}; --modal-overlay-opacity: ${gameConfig.style.modalOverlayOpacity};
+                --modal-box-bg: ${gameConfig.style.modalBoxBg}; --underlay-bg: ${gameConfig.style.underlayBg};
+                --underlay-neon: ${gameConfig.style.underlayNeon};
             }`;
 
             let fullHTML = `<!DOCTYPE html>
@@ -1172,6 +1216,7 @@
             let playPromise = audioPlayers['fanfare'].play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
+                    console.log("Autoplay blocked. Sound will play on click.");
                     document.addEventListener('click', () => { audioPlayers['fanfare'].play(); }, {once: true});
                 });
             }
@@ -1188,7 +1233,7 @@
             results.forEach((team, index) => { lbContainer.innerHTML += \`<div class="leaderboard-row"><div>#\${index + 1}</div><div style="display:flex; align-items:center; gap:10px;"><div style="width:30px; height:30px; border-radius:50%; overflow:hidden;">\${team.avatar}</div> \${team.name}</div><div style="color:var(--points-color); font-weight:bold;">\${team.score}</div></div>\`; });
         }
 
-        // Защита от правого клика внутри сгенерированной игры
+        // Защита от правого клика
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
         document.addEventListener('keydown', function(e) {
             if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) { e.preventDefault(); return false; }
@@ -1197,17 +1242,12 @@
 </body>
 </html>`;
 
-            const base64Game = btoa(unescape(encodeURIComponent(fullHTML)));
-            
-            // Важное исправление для звука в Genially: добавлен параметр allow="autoplay; fullscreen"
-            const iframeCode = `<iframe src="data:text/html;base64,${base64Game}" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>`;
-
             document.getElementById('out-html').value = fullHTML;
             document.getElementById('out-iframe').value = iframeCode;
             document.getElementById('export-result').style.display = 'block';
         }
 
-        // Защита от правого клика в самом редакторе
+        // Защита от правого клика в редакторе
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
         document.addEventListener('keydown', function(e) {
             if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) { e.preventDefault(); return false; }
